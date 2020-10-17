@@ -126,7 +126,7 @@ func (fh *FileHandle) readFromChunks(buff []byte, offset int64) (int64, error) {
 
 	totalRead, err := fh.f.reader.ReadAt(buff, offset)
 
-	if err != nil && err != io.EOF{
+	if err != nil && err != io.EOF {
 		glog.Errorf("file handle read %s: %v", fh.f.fullpath(), err)
 	}
 
@@ -185,6 +185,9 @@ func (fh *FileHandle) Release(ctx context.Context, req *fuse.ReleaseRequest) err
 		fh.f.wfs.ReleaseHandle(fh.f.fullpath(), fuse.HandleID(fh.handle))
 	}
 
+	if fh.dirtyPages.chunkSaveErrChanClosed {
+		return nil
+	}
 	// stop the goroutine
 	fh.dirtyPages.chunkSaveErrChanClosed = true
 	close(fh.dirtyPages.chunkSaveErrChan)
